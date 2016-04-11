@@ -2,16 +2,16 @@ from nltk.collocations import TrigramAssocMeasures
 from nltk.collocations import TrigramCollocationFinder
 from random import sample
 
-def read_raw_data(fileName):
-    f = open(fileName, 'r')
-    rawData = []
+def read_raw_data(file_name):
+    f = open(file_name, 'r')
+    raw_data = []
     for line in f:
-        rawData.append(line)
-    return rawData
+        raw_data.append(line)
+    return raw_data
     
-def generate_corpus(rawNames):
+def generate_corpus(raw_names):
     corpus = [];
-    for name in rawNames:
+    for name in raw_names:
         corpus.append('\n')
         corpus.extend(name)
         corpus.append('\n')
@@ -35,9 +35,8 @@ class NameGenderData:
         self.data = raw_data
         self.name_count = len(raw_data)
         sample_size = len(raw_data) / 10
-        # self.testing_set = set(sample(raw_data, sample_size))
-        # self.training_set = (set(raw_data) - self.testing_set) - unisex_names
-        self.training_set = set(raw_data) - unisex_names
+        self.testing_set = set(sample(raw_data, sample_size))
+        self.training_set = (set(raw_data) - self.testing_set) - unisex_names
         self.name_len_probabilities = calculate_name_len_probabilites(self.training_set);
         self.base_name_len_probability = 1.0 / len(self.training_set);
         corpus = generate_corpus(self.training_set)
@@ -66,40 +65,43 @@ def getNameScore(name, data):
         name_len_score = data.name_len_probabilities[len(name)]
     else:
         name_len_score = data.base_name_len_probability
-        
-    return score * name_len_score
+    
+    return score * name_len_score * data.name_probability
 
-maleNames = set(read_raw_data('male.txt'))
-femaleNames = set(read_raw_data('female.txt'))
+male_names = set(read_raw_data('male.txt'))
+female_names = set(read_raw_data('female.txt'))
 
-unisexNames = maleNames.intersection(femaleNames);
+unisex_names = male_names.intersection(female_names);
 
-maleNameData = NameGenderData(maleNames, unisexNames)
-femaleNameData = NameGenderData(femaleNames, unisexNames)
+male_name_data = NameGenderData(male_names, unisex_names)
+female_name_data = NameGenderData(female_names, unisex_names)
+
+total_name_count = len(male_name_data.training_set) + len(female_name_data.training_set)
+
+male_name_data.name_probability = (len(male_name_data.training_set) + 0.0) / total_name_count
+female_name_data.name_probability = (len(female_name_data.training_set) + 0.0) / total_name_count
     
 def getNameGenderRatio(name):
-    maleScore = getNameScore(name, maleNameData)
-    femaleScore = getNameScore(name, femaleNameData)
-    print 'Scores for ' + name
-    print 'male ' + str(maleScore)
-    print 'female ' + str(femaleScore)
-    print 'total ' + str(maleScore / (maleScore + femaleScore))
-    print '-------------------'
+    maleScore = getNameScore(name, male_name_data)
+    femaleScore = getNameScore(name, female_name_data)
+    # print 'Scores for ' + name
+    # print 'male ' + str(maleScore)
+    # print 'female ' + str(femaleScore)
+    # print 'total ' + str(maleScore / (maleScore + femaleScore))
+    # print '-------------------'
     return maleScore / (maleScore + femaleScore)
     
 def test():
-    total_len = len(maleNameData.testing_set) + len(femaleNameData.testing_set)
+    total_len = len(male_name_data.testing_set) + len(female_name_data.testing_set)
     guessed_len = 0.0;
-    for name in maleNameData.testing_set:
+    for name in male_name_data.testing_set:
         if getNameGenderRatio(name) >= 0.5:
             guessed_len = guessed_len + 1
     
-    for name in femaleNameData.testing_set:
+    for name in female_name_data.testing_set:
         if getNameGenderRatio(name) < 0.5:
             guessed_len = guessed_len + 1
             
     return guessed_len / total_len
     
-# print test()
-
-print getNameGenderRatio('dumbledor\n')
+print test()
