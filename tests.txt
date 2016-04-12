@@ -1,0 +1,12 @@
+No tagging: 0.826723163842
+tagging: 0.826757062147
+full tagging: 0.827615819209
+full tagging + last letter:  0.8268?????
+full tagging - unisex: 0.823593220339
+full tagging + 2 last letters
+
+
+No tagging + last letters:
+tagging + last letters:
+no tagging + tagged last letters:
+tagging + tagged last letters:
